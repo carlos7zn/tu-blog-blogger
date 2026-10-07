@@ -12,52 +12,44 @@
 
   async function updateVisitCount() {
     try {
-      // Increment counter via a simple upsert: we assume a table visits with id=1 and count
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_visits`, {
-        method: 'POST',
+      // Try to get existing visit count
+      const getRes = await fetch(`${SUPABASE_URL}/rest/v1/visits?id=eq.1&select=count`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (!getRes.ok) {
+        throw new Error(`Failed to get visits: ${getRes.status}`);
+      }
+      const data = await getRes.json();
+      let count = 0;
+      if (data.length > 0) {
+        count = data[0].count;
+      }
+      count++;
+      // Upsert
+      const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/visits`, {
+        method: data.length > 0 ? 'PATCH' : 'POST',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=representation'
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({ id: 1, count })
       });
-      if (!res.ok) {
-        // Fallback: try to get current count and update
-        const getRes = await fetch(`${SUPABASE_URL}/rest/v1/visits?id=eq.1`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
-        if (!getRes.ok) throw new Error('Failed to get visits');
-        const data = await getRes.json();
-        let count = (data.length && data[0].count) || 0;
-        count++;
-        const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/visits`, {
-          method: data.length ? 'PATCH' : 'POST',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({ id: 1, count })
-        });
-        if (!upsertRes.ok) throw new Error('Failed to upsert visits');
-        const upsertData = await upsertRes.json();
-        document.getElementById('visitCount').textContent = upsertData[0].count;
-        return;
+      if (!upsertRes.ok) {
+        throw new Error(`Failed to upsert visits: ${upsertRes.status}`);
       }
-      const data = await res.json();
-      document.getElementById('visitCount').textContent = data[0]?.count || 0;
+      const upsertData = await upsertRes.json();
+      document.getElementById('visitCount').textContent = upsertData[0]?.count || 0;
     } catch (err) {
       console.error(err);
       document.getElementById('visitCount').textContent = 'Error';
     }
   }
 
-  // Simple RPC function may not exist; we'll just call update on load
+  // Update on load
   updateVisitCount();
 </script>
