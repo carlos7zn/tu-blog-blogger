@@ -67,6 +67,112 @@
           <span>Diseño/Cómic</span><span>IA</span><span>Canva AI</span><span>Firefly</span><span>DALL·E</span>
         </div>
       </article>
+
+      <!-- ENTRADA 2: Entrega de Programación -->
+      <article class="post">
+        <h2>💻 Entrega de Programación</h2>
+        <div class="meta">Publicado: 12 octubre 2026 · Categoría: Programación</div>
+
+        <h3>Introducción</h3>
+        <p>Segundo proyecto del curso: desarrollo de una aplicación web para la comunidad Toca Hierbas usando HTML, CSS y JavaScript, con apoyo de IA para la generación de código y depuración.</p>
+
+        <h3>Contenido Principal</h3>
+        <p><strong>Código fuente destacado:</strong></p>
+        <pre><code>// Ejemplo de función de saludo
+function saludar(nombre) {
+  return `¡Hola, ${nombre}! Bienvenido a Toca Hierbas`;
+}
+console.log(saludar(&quot;Carlos&quot;));</code></pre>
+
+        <p><strong>Imagen de la interfaz:</strong></p>
+        <img src="img/prog-1.jpg" alt="Captura de la aplicación web" />
+
+        <p><strong>Imagen generada con IA:</strong></p>
+        <img src="img/prog-ia.jpg" alt="Diseño de interfaz generado por IA" />
+
+        <p><strong>Vídeo tutorial relacionado:</strong></p>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/8sh2xT6gx9M" frameborder="0" allowfullscreen></iframe>
+        </div>
+
+        <h3>Ficha de Transparencia de IA</h3>
+        <table class="transparency">
+          <tr><th>Herramienta IA</th><th>Uso</th><th>Pedir permiso</th><th>Prompt original</th><th>Resultado</th></tr>
+          <tr>
+            <td>GitHub Copilot</td>
+            <td>Autocompletado de funciones</td>
+            <td>✅ Sí</td>
+            <td><code>create a responsive navbar with dropdown menu</code></td>
+            <td>Navbar funcional con animación desplegable</td>
+          </tr>
+          <tr>
+            <td>ChatGPT</td>
+            <td>Explicación de algoritmos</td>
+            <td>✅ Sí</td>
+            <td><code>explain how binary search works with step-by-step example</code></td>
+            <td>Guía detallada con ejemplos en JavaScript</td>
+          </tr>
+        </table>
+        <p class="transparency-note"><em>Se respeta la propiedad intelectual, se cita la IA usada y se incluye el prompt original.</em></p>
+
+        <div class="tags">
+          <span>Programación</span><span>IA</span><span>GitHub Copilot</span><span>ChatGPT</span>
+        </div>
+      </article>
+
+      <!-- ENTRADA 3: Entrega de IA -->
+      <article class="post">
+        <h2>🤖 Entrega de IA</h2>
+        <div class="meta">Publicado: 19 octubre 2026 · Categoría: Inteligencia Artificial</div>
+
+        <h3>Introducción</h3>
+        <p>Tercer proyecto del curso: creación de un chatbot especializado en ayudar con tareas de TIC II usando modelos de lenguaje y herramientas de IA.</p>
+
+        <h3>Contenido Principal</h3>
+        <p><strong>Arquitectura del chatbot:</strong></p>
+        <img src="img/ia-arq.jpg" alt="Diagrama de arquitectura del chatbot" />
+
+        <p><strong>Imagen generada con IA (avatar del bot):</strong></p>
+        <img src="img/ia-avatar.jpg" alt="Avatar del chatbot generado por IA" />
+
+        <p><strong>Ejemplo de conversación:</strong></p>
+        <div style="background:#f8f9fa; padding:12px; border-radius:6px; font-family:monospace;">
+          <div><strong>Usuario:</strong> ¿Cómo puedo mejorar mi cómic digital?</div>
+          <div><strong>Bot:</strong> Prueba usar paletas de color complementarias y agrega efectos de luz con capas de overlay.</div>
+          <div><strong>Usuario:</strong> ¿Qué herramienta recomiendan para generar fondos?</div>
+          <div><strong>Bot:</strong> Adobe Firefly es excelente para fondos cyberpunk; prueba con prompts como &quot;neon city at night&quot;.</div>
+        </div>
+
+        <p><strong>Vídeo demostrativo:</strong></p>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/0wO8QUPZH9E" frameborder="0" allowfullscreen></iframe>
+        </div>
+
+        <h3>Ficha de Transparencia de IA</h3>
+        <table class="transparency">
+          <tr><th>Herramienta IA</th><th>Uso</th><th>Pedir permiso</th><th>Prompt original</th><th>Resultado</th></tr>
+          <tr>
+            <td>Claude</td>
+            <td>Diseño de flujo de conversación</td>
+            <td>✅ Sí</td>
+            <td><code>design a conversational flow for a technical support chatbot</code></td>
+            <td>Diagrama de estados y respuestas predefinidas</td>
+          </tr>
+          <tr>
+            <td>DALL·E</td>
+            <td>Generación de avatar</td>
+            <td>✅ Sí</td>
+            <td><code>friendly robot avatar, flat vector, pastel colors</code></td>
+            <td>Avatar robot sonriente en estilo plano</td>
+          </tr>
+        </table>
+        <p class="transparency-note"><em>Se respeta la propiedad intelectual, se cita la IA usada y se incluye el prompt original.</em></p>
+
+        <div class="tags">
+          <span>Inteligencia Artificial</span><span>Claude</span><span>DALL·E</span><span>Chatbot</span>
+        </div>
+      </article>
+
     </main>
 
     <aside class="sidebar">
@@ -90,5 +196,12 @@
 
   <script src="js/widgets.js"></script>
   <script src="js/main.js"></script>
-</body>
-</html>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.post, .widget').forEach(el => {
+        el.classList.add('fade-in');
+      });
+    });
+  </script>
+  </body>
+  </html>
