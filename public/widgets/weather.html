@@ -1,0 +1,23 @@
+<!-- El Tiempo Local - Widget Obligatorio -->
+<div style="padding:10px; text-align:center; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-radius:8px;">
+  <h3 style="color:#fff; margin-top:0;">🌦️ El Tiempo</h3>
+  <div id="weather-widget">
+    <span style="font-size:2em;">⛅</span>
+    <div id="weather-temp" style="font-size:1.2em; font-weight:bold;">--°C</div>
+    <div id="weather-desc" style="font-size:0.85em;">Cargando...</div>
+    <div id="weather-city" style="font-size:0.8em; opacity:0.8;">Tu localidad</div>
+  </div>
+  <script>
+    // Ejemplo con OpenWeatherMap (gratis) - necesitas API key en: https://openweathermap.org/api
+    async function cargarTiempo() {
+      const city = 'Madrid'; // Cambia a tu localidad
+      // const apiKey = 'TU_API_KEY'; // Inserta tu clave de OpenWeatherMap
+      // const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=es`;
+      // Demo con datos estáticos mientras no tengas API key:
+      document.getElementById('weather-temp').textContent = '22°C';
+      document.getElementById('weather-desc').textContent = 'Parcialmente nublado';
+      document.getElementById('weather-city').textContent = city;
+    }
+    cargarTiempo();
+  </script>
+</div>

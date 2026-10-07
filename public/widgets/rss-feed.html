@@ -1,0 +1,38 @@
+<!-- Lector RSS / Feed - Widget Obligatorio -->
+<div style="padding:8px;">
+  <h3>📰 Noticias Tecnológicas</h3>
+  <div id="rss-feed" style="font-size:0.9em; max-height:300px; overflow-y:auto;"></div>
+  <script>
+    // Feed público de Xataka (sin CORS proxy requerido en Blogger)
+    const feeds = [
+      'https://feeds.feedburner.com/xataka/download',
+      'https://feeds.feedburner.com/xataka/movil',
+      'https://feeds.feedburner.com/genbeta/desarrollo'
+    ];
+    async function cargarRSS(url) {
+      try {
+        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+        const text = await res.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, 'text/xml');
+        const items = xml.querySelectorAll('item');
+        let html = '';
+        items.forEach(item => {
+          const title = item.querySelector('title')?.textContent || '';
+          const link = item.querySelector('link')?.textContent || '#';
+          html += `<div style="margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:4px;">
+            <a href="${link}" target="_blank" style="color:#1a73e8; text-decoration:none; font-weight:500;">${title}</a>
+          </div>`;
+        });
+        return html;
+      } catch(e) { return `<div style="color:#888;">No se pudo cargar el feed</div>`; }
+    }
+    (async () => {
+      let html = '';
+      for (const url of feeds) {
+        html += await cargarRSS(url);
+      }
+      document.getElementById('rss-feed').innerHTML = html || '<div style="color:#888;">Cargando feeds...</div>';
+    })();
+  </script>
+</div>
