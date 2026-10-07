@@ -1,11 +1,107 @@
 <!-- Formulario de Contacto - Widget Obligatorio -->
 <div style="padding:10px;">
   <h3>📩 Contacto</h3>
-  <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" style="display:flex; flex-direction:column; gap:6px;">
+  <form id="contact-form" style="display:flex; flex-direction:column; gap:6px;">
     <input type="text" name="name" placeholder="Tu nombre" required style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;" />
     <input type="email" name="email" placeholder="Tu email" required style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;" />
     <textarea name="message" placeholder="Mensaje" rows="3" required style="padding:6px 10px; border:1px solid #ddd; border-radius:4px; resize:vertical;"></textarea>
     <button type="submit" style="padding:8px; background:#1a73e8; color:#fff; border:none; border-radius:4px; cursor:pointer;">Enviar</button>
   </form>
-  <p style="font-size:0.75em; color:#888; margin-top:6px;">*(Cambia YOUR_FORM_ID por tu formulario de Formspree o tu correo)</p>
+  <div id="form-status" style="margin-top:8px; font-size:0.85em; color:#666;"></div>
+  <p style="font-size:0.75em; color:#888; margin-top:6px;">
+    *Los mensajes se guardan en la base de datos y se intentan enviar por correo (requiere configuración de EmailJS).
+  </p>
 </div>
+<script>
+  // EmailJS configuration (user must replace with their own)
+  const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID'; // e.g., 'service_xxxxxx'
+  const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // e.g., 'template_xxxxxx'
+  const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // e.g., 'user_xxxxxx'
+
+  const SUPABASE_URL = 'https://ffiwqkvftwosybubnerh.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_t__IyaSL9g4v0HNNZjFk9Q_te0hZnos';
+
+  async function saveToSupabase(formData) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/contact_messages`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          created_at: new Date().toISOString()
+        })
+      });
+      if (!res.ok) throw new Error(`Failed to save: ${res.status}`);
+    } catch (err) {
+      console.error('Error saving to Supabase:', err);
+      // No throw; we still try to send email
+    }
+  }
+
+  async function sendEmailViaEmailJS(formData) {
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY ||
+        EMAILJS_SERVICE_ID.startsWith('YOUR')) {
+      console.warn('EmailJS not configured; skipping email send.');
+      return false;
+    }
+    try {
+      // Load emailjs if not already loaded
+      if (typeof emailjs === 'undefined') {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.emailjs.com/dist/email.min.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load EmailJS'));
+          document.head.appendChild(script);
+        });
+      }
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        from_name: formData.name,
+        from_email: formData.email,
+        message: formData.message,
+        to_email: 'carlos.torresgarcia@a.iesriomino.gal' // fixed recipient
+      }, EMAILJS_PUBLIC_KEY);
+      return true;
+    } catch (err) {
+      console.error('Error sending email via EmailJS:', err);
+      return false;
+    }
+  }
+
+  document.getElementById('contact-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = {
+      name: form.name.value.trim(),
+      email: form.email.value.trim(),
+      message: form.message.value.trim()
+    };
+    const statusEl = document.getElementById('form-status');
+    statusEl.textContent = 'Enviando...';
+    statusEl.style.color = '#1a73e8';
+
+    try {
+      await saveToSupabase(formData);
+      const emailSent = await sendEmailViaEmailJS(formData);
+      if (emailSent) {
+        statusEl.textContent = '¡Mensaje enviado y guardado!';
+        statusEl.style.color = '#2ecc71';
+      } else {
+        statusEl.textContent = 'Mensaje guardado (email no configurado).';
+        statusEl.style.color = '#f39c12';
+      }
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = 'Error al guardar el mensaje.';
+      statusEl.style.color = '#e74c3c';
+    }
+  });
+</script>
