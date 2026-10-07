@@ -8,16 +8,39 @@
     <div id="weather-city" style="font-size:0.8em; opacity:0.8;">Tu localidad</div>
   </div>
   <script>
-    // Ejemplo con OpenWeatherMap (gratis) - necesitas API key en: https://openweathermap.org/api
+    const SUPABASE_URL = 'https://ffiwqkvftwosybubnerh.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_t__IyaSL9g4v0HNNZjFk9Q_te0hZnos';
+
     async function cargarTiempo() {
-      const city = 'Madrid'; // Cambia a tu localidad
-      // const apiKey = 'TU_API_KEY'; // Inserta tu clave de OpenWeatherMap
-      // const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=es`;
-      // Demo con datos estáticos mientras no tengas API key:
-      document.getElementById('weather-temp').textContent = '22°C';
-      document.getElementById('weather-desc').textContent = 'Parcialmente nublado';
-      document.getElementById('weather-city').textContent = city;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/weather?order=updated_at.desc&limit=1`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.length === 0) {
+          document.getElementById('weather-temp').textContent = '--°C';
+          document.getElementById('weather-desc').textContent = 'Sin datos';
+          document.getElementById('weather-city').textContent = 'N/A';
+          return;
+        }
+        const row = data[0];
+        document.getElementById('weather-temp').textContent = `${row.temp}°C`;
+        document.getElementById('weather-desc').textContent = row.description || '--';
+        document.getElementById('weather-city').textContent = row.city || '--';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('weather-temp').textContent = 'Error';
+        document.getElementById('weather-desc').textContent = 'Error';
+        document.getElementById('weather-city').textContent = 'Error';
+      }
     }
+
     cargarTiempo();
+    // Refresh every 10 minutes
+    setInterval(cargarTiempo, 10 * 60 * 1000);
   </script>
 </div>

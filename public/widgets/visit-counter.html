@@ -1,19 +1,63 @@
 <!-- Contador de Visitas - Widget Obligatorio -->
 <div style="padding:10px; text-align:center;">
   <h3>📊 Estadísticas</h3>
-  <!-- Blogger StatBadge integrado - reemplazar con tu ID de blog -->
   <div class="counter">
     <span style="font-size:2em; font-weight:bold; color:#1a73e8;" id="visitCount">0</span>
     <div style="font-size:0.8em; color:#666;">visitas</div>
   </div>
-  <script>
-    // Contador simple con localStorage (funciona sin backend)
-    (function() {
-      const key = 'blog_visits';
-      let count = parseInt(localStorage.getItem(key) || '0');
-      count++;
-      localStorage.setItem(key, count);
-      document.getElementById('visitCount').textContent = count;
-    })();
-  </script>
 </div>
+<script>
+  const SUPABASE_URL = 'https://ffiwqkvftwosybubnerh.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_t__IyaSL9g4v0HNNZjFk9Q_te0hZnos';
+
+  async function updateVisitCount() {
+    try {
+      // Increment counter via a simple upsert: we assume a table visits with id=1 and count
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_visits`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({})
+      });
+      if (!res.ok) {
+        // Fallback: try to get current count and update
+        const getRes = await fetch(`${SUPABASE_URL}/rest/v1/visits?id=eq.1`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        if (!getRes.ok) throw new Error('Failed to get visits');
+        const data = await getRes.json();
+        let count = (data.length && data[0].count) || 0;
+        count++;
+        const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/visits`, {
+          method: data.length ? 'PATCH' : 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({ id: 1, count })
+        });
+        if (!upsertRes.ok) throw new Error('Failed to upsert visits');
+        const upsertData = await upsertRes.json();
+        document.getElementById('visitCount').textContent = upsertData[0].count;
+        return;
+      }
+      const data = await res.json();
+      document.getElementById('visitCount').textContent = data[0]?.count || 0;
+    } catch (err) {
+      console.error(err);
+      document.getElementById('visitCount').textContent = 'Error';
+    }
+  }
+
+  // Simple RPC function may not exist; we'll just call update on load
+  updateVisitCount();
+</script>

@@ -2,11 +2,109 @@
 <div style="padding:10px; background:#f8f9fa; border-radius:8px;">
   <h3>📊 Encuesta del Curso</h3>
   <p style="font-size:0.9em; margin-bottom:8px;">¿Cuál es la IA más útil para tus proyectos?</p>
-  <form style="display:flex; flex-direction:column; gap:4px; font-size:0.9em;">
-    <label><input type="radio" name="poll" value="chatgpt" /> ChatGPT / Claude</label>
-    <label><input type="radio" name="poll" value="firefly" /> Firefly / Canva AI</label>
-    <label><input type="radio" name="poll" value="midjourney" /> Midjourney / DALL·E</label>
-    <label><input type="radio" name="poll" value="codex" /> Codex / Copilot</label>
-  </form>
-  <button onclick="alert('¡Voto registrado! (Demo)')" style="margin-top:8px; padding:4px 12px; background:#34a853; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.85em;">Votar</button>
+  <div id="poll-options" style="display:flex; flex-direction:column; gap:4px; font-size:0.9em;"></div>
+  <button id="poll-vote" style="margin-top:8px; padding:4px 12px; background:#34a853; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.85em;">Votar</button>
+  <div id="poll-results" style="margin-top:10px; font-size:0.85em; color:#666;"></div>
 </div>
+<script>
+  const SUPABASE_URL = 'https://ffiwqkvftwosybubnerh.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_t__IyaSL9g4v0HNNZjFk9Q_te0hZnos';
+
+  const options = [
+    { value: 'chatgpt', label: 'ChatGPT / Claude' },
+    { value: 'firefly', label: 'Firefly / Canva AI' },
+    { value: 'midjourney', label: 'Midjourney / DALL·E' },
+    { value: 'codex', label: 'Codex / Copilot' }
+  ];
+
+  async function loadPoll() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/polls?select=option,votes`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // map option -> votes
+      const votesMap = {};
+      data.forEach(row => { votesMap[row.option] = row.votes; });
+      renderOptions(votesMap);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('poll-options').innerHTML = '<p style="color:#e74c3c;">Error cargando encuesta</p>';
+    }
+  }
+
+  function renderOptions(votesMap) {
+    const container = document.getElementById('poll-options');
+    container.innerHTML = '';
+    options.forEach(opt => {
+      const votes = votesMap[opt.value] ?? 0;
+      const label = document.createElement('label');
+      label.style.display = 'flex';
+      label.style.alignItems = 'center';
+      label.style.gap = '6px';
+      label.innerHTML = `
+        <input type="radio" name="poll" value="${opt.value}" />
+        <span>${opt.label}</span>
+        <span style="margin-left:auto; color:#666;">${votes} votos</span>
+      `;
+      container.appendChild(label);
+    });
+  }
+
+  async function vote() {
+    const selected = document.querySelector('input[name="poll"]:checked');
+    if (!selected) {
+      alert('Selecciona una opción');
+      return;
+    }
+    const value = selected.value;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_poll_vote`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ option_value: value })
+      });
+      if (!res.ok) {
+        // fallback: upsert manually
+        const getRes = await fetch(`${SUPABASE_URL}/rest/v1/polls?option=eq.${value}`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        if (!getRes.ok) throw new Error('Failed to get poll option');
+        let data = await getRes.json();
+        let votes = (data.length && data[0].votes) || 0;
+        votes++;
+        const method = data.length ? 'PATCH' : 'POST';
+        const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/polls`, {
+          method,
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({ option: value, votes })
+        });
+        if (!upsertRes.ok) throw new Error('Failed to upsert poll vote');
+      }
+      // reload after vote
+      loadPoll();
+    } catch (err) {
+      console.error(err);
+      alert('Error al registrar voto');
+    }
+  }
+
+  document.getElementById('poll-vote').addEventListener('click', vote);
+  loadPoll();
+</script>
